@@ -1,0 +1,21 @@
+{
+    "name": "ingestor",
+    "version": "0.0.1",
+    "description": "microservice to ingest the incoming blockchain data from near protocol, and process the transactions before sending them to message queue.",
+    "main": "index.js",
+    "author": "gaurav",
+    "license": "MIT",
+    "private": false,
+    "scripts": {
+        "start": "tsc && node dist/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.9",
+        "prisma": "^4.5.0",
+        "typescript": "^4.8.4"
+    },
+    "dependencies": {
+        "near-lake-framework": "^1.0.4"
+    }
+}
