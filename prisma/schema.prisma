@@ -11,6 +11,11 @@ datasource db {
 }
 
 model BlockHeight {
-  lastProcessedBlock Int @id
-  
+  lastProcessedBlock Int
+  network             Network @id
+}
+
+enum Network {
+  MAINNET @map("mainnet")
+  TESTNET @map("testnet")
 }

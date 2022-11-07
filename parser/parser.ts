@@ -1,7 +1,18 @@
 import { types } from "near-lake-framework";
-import { refFinanceTxParser } from "./protocols";
+import { RabbitMqConnection } from "../rabbitMQ/setup";
+import { mintbaseTxParser, refFinanceTxParser } from "./protocols";
 
-export const transactionParser = (tx: types.IndexerTransactionWithOutcome, timestamp: Date) => {
+/**
+ * 
+ * description: Parses a transaction and sends it to the message queue
+ * 
+ * @param tx 
+ * @param timestamp 
+ * @param rabbitMqConnection 
+ * 
+ * @returns void
+ */
+export const transactionParser = async(tx: types.IndexerTransactionWithOutcome, timestamp: Date, rabbitMqConnection: RabbitMqConnection) => {
     const { transaction } = tx;
     const { actions } = transaction;
 
@@ -12,6 +23,7 @@ export const transactionParser = (tx: types.IndexerTransactionWithOutcome, times
     const relevantActions: types.FunctionCallAction[] = actions.filter((action) => typeof (action) === "object" && "FunctionCall" in action) as types.FunctionCallAction[];
     
     if (relevantActions.length > 0) {
-        refFinanceTxParser(relevantActions, transaction.signerId, transaction.hash, timestamp);
+        await refFinanceTxParser(relevantActions, transaction.signerId, transaction.hash, timestamp, rabbitMqConnection);
+        await mintbaseTxParser(transaction, relevantActions, transaction.signerId, transaction.hash, timestamp, rabbitMqConnection);
     }
 }
