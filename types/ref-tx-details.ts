@@ -1,17 +1,10 @@
 import { SupportedProtocols } from "./supported-protocols";
 
-export enum RefSupportedTxTypes {
-    Swap = "swap",
-    AddLiquidity = "add-liquidity",
-    RemoveLiquidity = "remove-liquidity",
+export enum RefSupportedEvents {
+    Swap = "Swap",
+    AddLiquidity = "Add Liquidity",
+    RemoveLiquidity = "Remove Liquidity",
 }
-
-export type RefSupportedTxAction = RefSwapTx | RefAddLiquidityTx | RefRemoveLiquidityTx;
-
-export declare type RefSwapTx = Record<RefSupportedTxTypes.Swap, RefSwapTxDetails>
-export declare type RefAddLiquidityTx = Record<RefSupportedTxTypes.AddLiquidity, RefAddLiquidityTxDetails>
-export declare type RefRemoveLiquidityTx = Record<RefSupportedTxTypes.RemoveLiquidity, RefRemoveLiquidityTxDetails>
-
 
 export interface RefSwapTxDetails {
     token_sold: string;
@@ -32,10 +25,26 @@ export interface RefRemoveLiquidityTxDetails {
     poolId: string;
 }
 
-export interface RefTxDetails {
-    appId: SupportedProtocols.RefFinance;
-    action: RefSupportedTxAction;
-    signerId: string;
+export declare type RefSwapTxData = {
+    eventName: RefSupportedEvents.Swap
+    data: RefSwapTxDetails
+}
+
+export declare type RefAddLiquidityTxData = {
+    eventName: RefSupportedEvents.AddLiquidity
+    data: RefAddLiquidityTxDetails
+}
+
+export declare type RefRemoveLiquidityTxData = {
+    eventName: RefSupportedEvents.RemoveLiquidity
+    data: RefRemoveLiquidityTxDetails
+}
+
+export declare type RefTxData = RefSwapTxData | RefAddLiquidityTxData | RefRemoveLiquidityTxData;
+
+export declare type RefTxDetails = RefTxData & {
+    appName: SupportedProtocols.RefFinance;
+    userWalletAddress: string;
     hash: string;
     timestamp: Date;
 }

@@ -1,6 +1,7 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
 import { RabbitMqConnection } from "../../rabbitMQ/setup";
+import { RefSupportedEvents } from "../../types/ref-tx-details";
 import { SupportedProtocols } from "../../types/supported-protocols";
 import { TxDetails } from "../../types/tx-details";
 
@@ -17,21 +18,20 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                 const {token_out, min_amount_out} = parsedMsg.actions.at(-1);
                 
                 const txDetails: TxDetails = {
-                    appId: SupportedProtocols.RefFinance,
-                    action: {
-                        "swap": {
-                            token_sold: token_in,
-                            token_bought: token_out,
-                            amount_sold: args.amount,
-                            amount_bought: min_amount_out,
-                        }
-                    },
-                    signerId,
+                    appName: SupportedProtocols.RefFinance,
+                    userWalletAddress: signerId,
                     hash,
-                    timestamp
+                    timestamp,
+                    eventName: RefSupportedEvents.Swap,
+                    data: {
+                        token_sold: token_in,
+                        token_bought: token_out,
+                        amount_sold: args.amount,
+                        amount_bought: min_amount_out,
+                    },
                 }
                 // console.log(txDetails);
-                rabbitMqConnection.channel.sendToQueue("nnp-msg-queue", Buffer.from(JSON.stringify(txDetails)), { persistent: true });
+                rabbitMqConnection.publishMessage(txDetails);
                 return;
             } else if (methodName in ['add_stable_liquidity', 'add_liquidity'] && args.receiver_id == "v2.ref-finance.near") {
                 const poolId = args.args_json.pool_id;
@@ -39,21 +39,20 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                 const { token_symbols } = poolDetails;
 
                 const txDetails: TxDetails = {
-                    appId: SupportedProtocols.RefFinance,
-                    action: {
-                        "add-liquidity": {
-                            tokenList: token_symbols ?? [],
-                            amountList: args.args_json.amounts,
-                            poolId,
-                        }
-                    },
-                    signerId,
+                    appName: SupportedProtocols.RefFinance,
+                    userWalletAddress: signerId,
                     hash,
-                    timestamp
+                    timestamp,
+                    eventName: RefSupportedEvents.AddLiquidity,
+                    data: {
+                        tokenList: token_symbols ?? [],
+                        amountList: args.args_json.amounts,
+                        poolId,
+                    }
                 }
 
                 // console.log(txDetails);
-                rabbitMqConnection.channel.sendToQueue("nnp-msg-queue", Buffer.from(JSON.stringify(txDetails)), { persistent: true });
+                rabbitMqConnection.publishMessage(txDetails);
                 return
             } else if (methodName in ['remove_liquidity_by_tokens', 'remove_liquidity'] && args.receiver_id == "v2.ref-finance.near") {
                 const poolId = args.args_json.pool_id;
@@ -61,21 +60,20 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                 const { token_symbols } = poolDetails;
 
                 const txDetails: TxDetails = {
-                    appId: SupportedProtocols.RefFinance,
-                    action: {
-                        "remove-liquidity": {
-                            amountList: args.args_json.amounts ?? args.args_json.min_amounts ?? [],
-                            tokenList: token_symbols ?? [],
-                            poolId: args.args_json.pool_id,
-                        }
-                    },
-                    signerId,
+                    appName: SupportedProtocols.RefFinance,
+                    userWalletAddress: signerId,
                     hash,
-                    timestamp
+                    timestamp,
+                    eventName: RefSupportedEvents.RemoveLiquidity,
+                    data: {
+                        amountList: args.args_json.amounts ?? args.args_json.min_amounts ?? [],
+                        tokenList: token_symbols ?? [],
+                        poolId: args.args_json.pool_id
+                    }
                 }
 
                 // console.log(txDetails);
-                rabbitMqConnection.channel.sendToQueue("nnp-msg-queue", Buffer.from(JSON.stringify(txDetails)), { persistent: true });
+                rabbitMqConnection.publishMessage(txDetails);
                 return;
             }
         } catch (e) {

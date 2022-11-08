@@ -1,4 +1,5 @@
 import amqplib from 'amqplib';
+import { TxDetails } from '../types/tx-details';
 
 export class RabbitMqConnection {
     private connection: amqplib.Connection | undefined;
@@ -70,5 +71,14 @@ export class RabbitMqConnection {
         }
         this.connection = undefined;
         return true;
+    }
+
+    async publishMessage(message: TxDetails): Promise<void> {
+        try {
+            this.channel.sendToQueue('nnp-msg-queue', Buffer.from(JSON.stringify(message)), { persistent: true });
+        } catch (err) {
+            console.log(`Failed to publish message: ${err}`);
+            throw new Error(err as string);
+        }
     }
 }

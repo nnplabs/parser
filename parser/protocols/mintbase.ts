@@ -1,6 +1,7 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
 import { RabbitMqConnection } from "../../rabbitMQ/setup";
+import { MintbaseSupportedEvents } from "../../types/mintbase-tx-details";
 import { SupportedProtocols } from "../../types/supported-protocols";
 import { TxDetails } from "../../types/tx-details";
 
@@ -12,42 +13,49 @@ export const mintbaseTxParser = async (tx: types.Transaction, actions: types.Fun
             assert(receiverId.match(/\.mintbase\d+\.near$/));
             const args = JSON.parse(Buffer.from(_encodedArgs, 'base64').toString('utf8'))
             if (methodName == 'nft_transfer') {
-                const txDetails: TxDetails = {
-                    appId: SupportedProtocols.Mintbase,
-                    action: {
-                        "transfer": {
-                            tokenId: args.token_id,
-                            receiver: args.receiver_id,
-                            nftContract: receiverId,
-                        }
+                const sendTxDetails: TxDetails = {
+                    appName: SupportedProtocols.Mintbase,
+                    data: {
+                        tokenId: args.token_id,
+                        receiver: args.receiver_id,
+                        nftContract: receiverId
                     },
-                    signerId,
+                    eventName: MintbaseSupportedEvents.Send,
+                    userWalletAddress: signerId,
                     hash,
                     timestamp
                 }
-                console.log(txDetails);
-                // rabbitMqConnection.channel.sendToQueue("nnp-msg-queue", Buffer.from(JSON.stringify(txDetails)), { persistent: true });
+                const receiveTxDetails: TxDetails = {
+                    appName: SupportedProtocols.Mintbase,
+                    data: {
+                        tokenId: args.token_id,
+                        sender: args.receiver_id,
+                        nftContract: receiverId
+                    },
+                    eventName: MintbaseSupportedEvents.Receive,
+                    userWalletAddress: signerId,
+                    hash,
+                    timestamp
+                }
+                // console.log(txDetails);
+                rabbitMqConnection.publishMessage(sendTxDetails);
+                rabbitMqConnection.publishMessage(receiveTxDetails);
                 return;
             } else if (methodName == 'nft_batch_mint') {
                 const txDetails: TxDetails = {
-                    appId: SupportedProtocols.Mintbase,
-                    action: {
-                        "mint": {
-                            num: args.num_to_mint,
-                            nftContract: receiverId,
-                        }
-                    },
-                    signerId,
+                    appName: SupportedProtocols.Mintbase,
+                    userWalletAddress: signerId,
                     hash,
-                    timestamp
+                    timestamp,
+                    eventName: MintbaseSupportedEvents.Mint,
+                    data: {
+                        num: args.num_to_mint,
+                        nftContract: receiverId
+                    }
                 }
-                console.log(txDetails);
-                // rabbitMqConnection.channel.sendToQueue("nnp-msg-queue", Buffer.from(JSON.stringify(txDetails)), { persistent: true });
+                // console.log(txDetails);
+                rabbitMqConnection.publishMessage(txDetails);
                 return;
-            }
-            // console.log(args);
-            if (hash == "2kK9KssUAjgo65yraY8dWtUDet1WWY4KR2w1Vi1pdXjP") {
-                console.log(action, args, signerId, JSON.stringify(tx));
             }
         } catch (error) {
             // console.log(error);

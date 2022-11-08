@@ -1,30 +1,48 @@
 import { SupportedProtocols } from "./supported-protocols";
 
-export enum MintbaseSupportedTxTypes {
-    Mint = "mint",
-    Transfer = "transfer"
+export enum MintbaseSupportedEvents {
+    Mint = "Mint",
+    Send = "Send",
+    Receive = "Receive"
 }
-
-export type MintbaseSupportedTxAction = MintbaseMintTx | MintbaseTransferTx;
-
-export declare type MintbaseMintTx = Record<MintbaseSupportedTxTypes.Mint, MintbaseMintTxDetails>
-export declare type MintbaseTransferTx = Record<MintbaseSupportedTxTypes.Transfer, MintbaseTransferTxDetails>
 
 export interface MintbaseMintTxDetails {
     num: number;
     nftContract: string;
 }
 
-export interface MintbaseTransferTxDetails {
+export interface MintbaseSendTxDetails {
     tokenId: string;
     nftContract: string;
     receiver: string;
 }
 
-export interface MintbaseTxDetails {
-    appId: SupportedProtocols.Mintbase
-    action: MintbaseSupportedTxAction
-    signerId: string
-    hash: string
-    timestamp: Date
+export interface MintbaseReceiveTxDetails {
+    tokenId: string;
+    nftContract: string;
+    sender: string;
+}
+
+export declare type MintbaseMintTxData = {
+    eventName: MintbaseSupportedEvents.Mint
+    data: MintbaseMintTxDetails
+}
+
+export declare type MintbaseSendTxData = {
+    eventName: MintbaseSupportedEvents.Send
+    data: MintbaseSendTxDetails
+}
+
+export declare type MintbaseReceiveTxData = {
+    eventName: MintbaseSupportedEvents.Receive
+    data: MintbaseReceiveTxDetails
+}
+
+export declare type MintbaseTxData = MintbaseMintTxData | MintbaseSendTxData | MintbaseReceiveTxData;
+
+export declare type MintbaseTxDetails = MintbaseTxData & {
+    appName: SupportedProtocols.Mintbase;
+    userWalletAddress: string;
+    hash: string;
+    timestamp: Date;
 }
