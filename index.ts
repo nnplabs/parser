@@ -6,7 +6,7 @@ import { RabbitMqConnection } from './rabbitMQ/setup';
 const lakeConfig: types.LakeConfig = {
   s3BucketName: "near-lake-data-mainnet",
   s3RegionName: "eu-central-1",
-  startBlockHeight: 70878531 ,
+  startBlockHeight: 78368075,
 };
 
 class NotificationService  {
@@ -53,7 +53,7 @@ class NotificationService  {
 
 (async () => {
     const rabbitMqConnection = new RabbitMqConnection();
-    // await rabbitMqConnection.setUp()
+    await rabbitMqConnection.setUp()
     // await rabbitMqConnection.channel.consume("nnp-msg-queue", (msg) => console.log("listening", msg?.content.toString()));
 
     // const prisma = new PrismaClient();
