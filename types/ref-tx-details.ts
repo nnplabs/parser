@@ -11,18 +11,25 @@ export interface RefSwapTxDetails {
     token_bought: string;
     amount_sold: string;
     amount_bought: string;
+    timestamp: string;
 }
 
 export interface RefAddLiquidityTxDetails {
-    tokenList: string[];
-    amountList: string[];
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+    amountB: string;
     poolId: string;
+    timestamp: string;
 }
 
 export interface RefRemoveLiquidityTxDetails {
-    tokenList: string[];
-    amountList: string[];
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+    amountB: string;
     poolId: string;
+    timestamp: string;
 }
 
 export declare type RefSwapTxData = {
@@ -45,6 +52,6 @@ export declare type RefTxData = RefSwapTxData | RefAddLiquidityTxData | RefRemov
 export declare type RefTxDetails = RefTxData & {
     appName: SupportedProtocols.RefFinance;
     userWalletAddress: string;
-    hash: string;
-    timestamp: Date;
+    txHash: string;
+    apiKey: string;
 }

@@ -1,4 +1,4 @@
 export enum SupportedProtocols {
-    RefFinance = "ref-finance-notifications",
+    RefFinance = "RefApp",
     Mintbase = "mintbase-notifications",
 }
