@@ -9,18 +9,21 @@ export enum MintbaseSupportedEvents {
 export interface MintbaseMintTxDetails {
     num: number;
     nftContract: string;
+    timestamp: string;
 }
 
 export interface MintbaseSendTxDetails {
     tokenId: string;
     nftContract: string;
     receiver: string;
+    timestamp: string;
 }
 
 export interface MintbaseReceiveTxDetails {
     tokenId: string;
     nftContract: string;
     sender: string;
+    timestamp: string;
 }
 
 export declare type MintbaseMintTxData = {
@@ -43,6 +46,5 @@ export declare type MintbaseTxData = MintbaseMintTxData | MintbaseSendTxData | M
 export declare type MintbaseTxDetails = MintbaseTxData & {
     appName: SupportedProtocols.Mintbase;
     userWalletAddress: string;
-    hash: string;
-    timestamp: Date;
+    txHash: string;
 }
