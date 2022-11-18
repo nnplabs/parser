@@ -1,29 +1,77 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
-import { RabbitMqConnection } from "../../rabbitMQ/setup";
-import { MintbaseSupportedEvents } from "../../types/mintbase-tx-details";
-import { SupportedProtocols } from "../../types/supported-protocols";
-import { TxDetails } from "../../types/tx-details";
+import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
+
+export enum MintbaseSupportedEvents {
+    Mint = "Mint",
+    Send = "Send",
+    Receive = "Receive"
+}
+
+export interface MintbaseMintDataParams {
+    num: number;
+    nftContract: string;
+    timestamp: string;
+}
+
+export interface MintbaseSendDataParams {
+    tokenId: string;
+    nftContract: string;
+    receiver: string;
+    timestamp: string;
+}
+
+export interface MintbaseReceiveDataParams {
+    tokenId: string;
+    nftContract: string;
+    sender: string;
+    timestamp: string;
+}
+
+export declare type MintbaseMintTxData = {
+    eventName: MintbaseSupportedEvents.Mint
+    data: MintbaseMintDataParams
+}
+
+export declare type MintbaseSendTxData = {
+    eventName: MintbaseSupportedEvents.Send
+    data: MintbaseSendDataParams
+}
+
+export declare type MintbaseReceiveTxData = {
+    eventName: MintbaseSupportedEvents.Receive
+    data: MintbaseReceiveDataParams
+}
+
+export declare type MintbaseTxData = MintbaseMintTxData | MintbaseSendTxData | MintbaseReceiveTxData;
+
+export declare type MintbaseTxDetails = MintbaseTxData & {
+    appName: SupportedProtocolsTypes.Mintbase;
+    userWalletAddress: string;
+    txHash: string;
+}
 
 /**
- * 
- * @param tx transaction to be parsed
+ * @param receiverId contract where the transaction was sent
  * @param actions actions of the transaction
  * @param signerId signer of the transaction
  * @param txHash tx
  * @param timestamp timestamp of the transaction
- * @param rabbitMqConnection rabbitmq connection instance
+ * 
+ * @returns array of tx details
  */
-export const mintbaseTxParser = async (tx: types.Transaction, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date, rabbitMqConnection: RabbitMqConnection) => {
-    actions.forEach(async (action) => {
+export const mintbaseTxParser = async (receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+    const allTxDetails: TxDetails[] = [];
+    assert(receiverId == "mintbase.near");
+
+    for(let i = 0; i < actions.length; i++) {
+        const action = actions[i];
         const { args: _encodedArgs, methodName } = action.FunctionCall;
-        const { receiverId, signerId } = tx;
         try {
-            assert(receiverId.match(/\.mintbase\d+\.near$/));
             const args = JSON.parse(Buffer.from(_encodedArgs, 'base64').toString('utf8'))
             if (methodName == 'nft_transfer') {
                 const sendTxDetails: TxDetails = {
-                    appName: SupportedProtocols.Mintbase,
+                    appName: SupportedProtocolsTypes.Mintbase,
                     data: {
                         tokenId: args.token_id,
                         receiver: args.receiver_id,
@@ -36,7 +84,7 @@ export const mintbaseTxParser = async (tx: types.Transaction, actions: types.Fun
                 }
 
                 const receiveTxDetails: TxDetails = {
-                    appName: SupportedProtocols.Mintbase,
+                    appName: SupportedProtocolsTypes.Mintbase,
                     data: {
                         tokenId: args.token_id,
                         sender: args.receiver_id,
@@ -47,13 +95,11 @@ export const mintbaseTxParser = async (tx: types.Transaction, actions: types.Fun
                     userWalletAddress: signerId,
                     txHash
                 }
-                // console.log(txDetails);
-                rabbitMqConnection.publishMessage(sendTxDetails);
-                rabbitMqConnection.publishMessage(receiveTxDetails);
-                return;
+                allTxDetails.push(sendTxDetails);
+                allTxDetails.push(receiveTxDetails);
             } else if (methodName == 'nft_batch_mint') {
                 const txDetails: TxDetails = {
-                    appName: SupportedProtocols.Mintbase,
+                    appName: SupportedProtocolsTypes.Mintbase,
                     userWalletAddress: signerId,
                     txHash,
                     eventName: MintbaseSupportedEvents.Mint,
@@ -63,12 +109,11 @@ export const mintbaseTxParser = async (tx: types.Transaction, actions: types.Fun
                         timestamp: timestamp.toDateString(),
                     }
                 }
-                // console.log(txDetails);
-                rabbitMqConnection.publishMessage(txDetails);
-                return;
+                allTxDetails.push(txDetails);
             }
         } catch (error) {
             // console.log(error);
         }
-    });
+    }
+    return allTxDetails;
 }

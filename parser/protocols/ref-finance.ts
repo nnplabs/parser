@@ -1,17 +1,82 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
-import { RabbitMqConnection } from "../../rabbitMQ/setup";
-import { RefSupportedEvents } from "../../types/ref-tx-details";
-import { SupportedProtocols } from "../../types/supported-protocols";
-import { TxDetails } from "../../types/tx-details";
 import { formatTokenAmountByAddress, formatTokenAmountBySymbol, getTokenSymbol } from "../../utils/getTokenMetaData";
+import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
-export const refFinanceTxParser = async(actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date, rabbitMqConnection: RabbitMqConnection): Promise<void> => {
-    actions.forEach(async (action) => {
+export enum RefSupportedEvents {
+    Swap = "Swap",
+    AddLiquidity = "Add Liquidity",
+    RemoveLiquidity = "Remove Liquidity",
+}
+
+export interface RefSwapDataParams {
+    token_sold: string;
+    token_bought: string;
+    amount_sold: string;
+    amount_bought: string;
+    timestamp: string;
+}
+
+export interface RefAddLiquidityDataParams {
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+    amountB: string;
+    poolId: string;
+    timestamp: string;
+}
+
+export interface RefRemoveLiquidityDataParams {
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+    amountB: string;
+    poolId: string;
+    timestamp: string;
+}
+
+export declare type RefSwapTxData = {
+    eventName: RefSupportedEvents.Swap
+    data: RefSwapDataParams
+}
+
+export declare type RefAddLiquidityTxData = {
+    eventName: RefSupportedEvents.AddLiquidity
+    data: RefAddLiquidityDataParams
+}
+
+export declare type RefRemoveLiquidityTxData = {
+    eventName: RefSupportedEvents.RemoveLiquidity
+    data: RefRemoveLiquidityDataParams
+}
+
+export declare type RefTxData = RefSwapTxData | RefAddLiquidityTxData | RefRemoveLiquidityTxData;
+
+export declare type RefTxDetails = RefTxData & {
+    appName: SupportedProtocolsTypes.RefFinance;
+    userWalletAddress: string;
+    txHash: string;
+    apiKey: string;
+}
+
+/**
+ * @param receiverId contract where the transaction was sent
+ * @param actions actions of the transaction
+ * @param signerId signer of the transaction
+ * @param txHash tx
+ * @param timestamp timestamp of the transaction
+ * 
+ * @returns array of tx details
+ */
+export const refFinanceTxParser = async(receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+    const allTxDetails: TxDetails[] = [];
+    assert(receiverId == "v2.ref-finance.near")
+
+    for(let i = 0; i < actions.length; i++) {
+        const action = actions[i];
         const { args: _encodedArgs, methodName } = action.FunctionCall;
         try {
             const args = JSON.parse(Buffer.from(_encodedArgs, 'base64').toString('utf8'))
-            assert(args.receiver_id == "v2.ref-finance.near")
             
             if (methodName == 'ft_transfer_call' && args.msg) {
                 const parsedMsg = JSON.parse(args.msg);
@@ -19,7 +84,7 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                 const {token_out, min_amount_out} = parsedMsg.actions.at(-1);
                 
                 const txDetails: TxDetails = {
-                    appName: SupportedProtocols.RefFinance,
+                    appName: SupportedProtocolsTypes.RefFinance,
                     userWalletAddress: signerId,
                     txHash,
                     eventName: RefSupportedEvents.Swap,
@@ -32,16 +97,14 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                     },
                     apiKey: process.env.REF_API_KEY ?? "",
                 }
-                // console.log(txDetails);
-                rabbitMqConnection.publishMessage(txDetails);
-                return;
+                allTxDetails.push(txDetails);
             } else if (methodName in ['add_stable_liquidity', 'add_liquidity']) {
                 const poolId = args.args_json.pool_id;
                 const poolDetails: any = await fetch('https://indexer.ref.finance/get-pool?pool_id=' + poolId)
                 const { token_symbols } = poolDetails;
 
                 const txDetails: TxDetails = {
-                    appName: SupportedProtocols.RefFinance,
+                    appName: SupportedProtocolsTypes.RefFinance,
                     userWalletAddress: signerId,
                     txHash,
                     eventName: RefSupportedEvents.AddLiquidity,
@@ -55,17 +118,14 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                     },
                     apiKey: process.env.REF_API_KEY ?? "",
                 }
-
-                // console.log(txDetails);
-                rabbitMqConnection.publishMessage(txDetails);
-                return
+                allTxDetails.push(txDetails);
             } else if (methodName in ['remove_liquidity_by_tokens', 'remove_liquidity']) {
                 const poolId = args.args_json.pool_id;
                 const poolDetails: any = await fetch('https://indexer.ref.finance/get-pool?pool_id=' + poolId)
                 const { token_symbols } = poolDetails;
 
                 const txDetails: TxDetails = {
-                    appName: SupportedProtocols.RefFinance,
+                    appName: SupportedProtocolsTypes.RefFinance,
                     userWalletAddress: signerId,
                     txHash,
                     eventName: RefSupportedEvents.RemoveLiquidity,
@@ -79,13 +139,12 @@ export const refFinanceTxParser = async(actions: types.FunctionCallAction[], sig
                     },
                     apiKey: process.env.REF_API_KEY ?? "",
                 }
-
-                // console.log(txDetails);
-                rabbitMqConnection.publishMessage(txDetails);
-                return;
+                allTxDetails.push(txDetails);
             }
         } catch (e) {
-            // console.log(e);
+            console.log(e);
         }
-    })
+    }
+
+    return allTxDetails;
 }
