@@ -31,10 +31,9 @@ export const transactionParser = async(tx: types.IndexerTransactionWithOutcome, 
         const parsedTx = await parser.parse();
 
         if (parsedTx) {
-            // parsedTx.forEach((tx) => {
-            //     rabbitMqConnection.publishMessage(tx);
-            // });
-            console.log(parsedTx);
+            parsedTx.forEach((tx) => {
+                rabbitMqConnection.publishMessage(tx);
+            });
         }
     }
 }
