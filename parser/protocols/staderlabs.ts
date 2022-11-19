@@ -1,5 +1,6 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { formatTokenAmountByAddress } from "../../utils/getTokenMetaData";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
@@ -12,16 +13,19 @@ export enum StaderLabsSupportedEvents {
 export interface StaderLabsStakeDataParams {
     deposit: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface StaderLabsUnstakeDataDetails {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface StaderLabsWithdrawDataParams {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export declare type StaderLabsStakeTxData = {
@@ -45,6 +49,7 @@ export declare type StaderLabsTxDetails = StaderLabsTxData & {
     appName: SupportedProtocolsTypes.StaderLabs;
     userWalletAddress: string;
     txHash: string;
+    contractAddress: string;
 }
 
 /**
@@ -71,10 +76,12 @@ export const staderlabsTxParser = async (_transaction: types.Transaction, receiv
                     data: {
                         deposit: `${formatTokenAmountByAddress(receiverId, args.deposit_token)} Near`,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
                     eventName: StaderLabsSupportedEvents.Stake,
                     userWalletAddress: signerId,
                     txHash,
+                    contractAddress: receiverId
                 }
 
                 allTxDetails.push(txDetails);
@@ -87,7 +94,9 @@ export const staderlabsTxParser = async (_transaction: types.Transaction, receiv
                     data: {
                         amount: methodName == 'unstake' ? `${formatTokenAmountByAddress(receiverId, args.args_json.amount)} Near` : "all staked Near",
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName == 'withdraw' || methodName == 'withdraw_all') {
@@ -99,7 +108,9 @@ export const staderlabsTxParser = async (_transaction: types.Transaction, receiv
                     data: {
                         amount: `${formatTokenAmountByAddress(receiverId, args.args_json.withdraw)} Near`,
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             }

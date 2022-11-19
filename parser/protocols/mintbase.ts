@@ -1,5 +1,6 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
 export enum MintbaseSupportedEvents {
@@ -12,6 +13,7 @@ export interface MintbaseMintDataParams {
     num: number;
     nftContract: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface MintbaseSendDataParams {
@@ -19,6 +21,7 @@ export interface MintbaseSendDataParams {
     nftContract: string;
     receiver: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface MintbaseReceiveDataParams {
@@ -26,6 +29,7 @@ export interface MintbaseReceiveDataParams {
     nftContract: string;
     sender: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export declare type MintbaseMintTxData = {
@@ -49,6 +53,7 @@ export declare type MintbaseTxDetails = MintbaseTxData & {
     appName: SupportedProtocolsTypes.Mintbase;
     userWalletAddress: string;
     txHash: string;
+    contractAddress: string;
 }
 
 /**
@@ -78,10 +83,12 @@ export const mintbaseTxParser = async (transaction: types.Transaction,  receiver
                         receiver: args.receiver_id,
                         nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
                     eventName: MintbaseSupportedEvents.Send,
                     userWalletAddress: signerId,
                     txHash,
+                    contractAddress
                 }
 
                 const receiveTxDetails: TxDetails = {
@@ -91,10 +98,12 @@ export const mintbaseTxParser = async (transaction: types.Transaction,  receiver
                         sender: args.receiver_id,
                         nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
                     eventName: MintbaseSupportedEvents.Receive,
                     userWalletAddress: signerId,
-                    txHash
+                    txHash,
+                    contractAddress
                 }
                 allTxDetails.push(sendTxDetails);
                 allTxDetails.push(receiveTxDetails);
@@ -108,7 +117,9 @@ export const mintbaseTxParser = async (transaction: types.Transaction,  receiver
                         num: args.num_to_mint,
                         nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress
                 }
                 allTxDetails.push(txDetails);
             }

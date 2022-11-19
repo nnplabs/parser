@@ -1,23 +1,26 @@
 import { types } from "near-lake-framework";
-import { TxDetails } from "./protocol-types";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
+import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
 
 export enum GenericSupportedEvents {
     Generic = "Generic",
 }
 
-export interface GenericStakeDataParams {
+export interface GenericDataParams {
     methodName: string;
     contractAddress: string;
+    txUrl: string;
     timestamp: string;
 }
 
 export declare type GenericTxDetails = {
     appName: string;
+    contractAddress: string;
     userWalletAddress: string;
     txHash: string;
     eventName: GenericSupportedEvents.Generic
-    data: GenericStakeDataParams
+    data: GenericDataParams
 }
 
 /**
@@ -37,12 +40,14 @@ export const genericTxParser = async (_transaction: types.Transaction, receiverI
         const { args: _encodedArgs, methodName } = action.FunctionCall;
         try {
                 const txDetails: TxDetails = {
-                    appName: receiverId,
+                    appName: SupportedProtocolsTypes.DemoApp,
                     data: {
                         methodName: methodName,
                         contractAddress: receiverId,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
+                    contractAddress: receiverId,
                     eventName: GenericSupportedEvents.Generic,
                     userWalletAddress: signerId,
                     txHash,

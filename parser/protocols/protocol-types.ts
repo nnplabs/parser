@@ -6,11 +6,12 @@ import { RefTxDetails } from "./ref-finance";
 import { StaderLabsTxDetails } from "./staderlabs";
 
 export enum SupportedProtocolsTypes {
-    RefFinance = "ref-finance.near",
-    Mintbase = "mintbase.near",
-    LinearProtocol = "linear-protocol.near",
-    StaderLabs = "v2-nearx.stader-labs.near",
-    MetaPool = "meta-pool.near",
+    RefFinance = "RefFinance",
+    Mintbase = "MintBase",
+    LinearProtocol = "LinearProtocol",
+    StaderLabs = "StaderLabs",
+    MetaPool = "MetaPool",
+    DemoApp = "Demo App"
 }
 
 export declare type TxDetails = RefTxDetails 

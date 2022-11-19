@@ -1,5 +1,6 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { formatTokenAmountByAddress } from "../../utils/getTokenMetaData";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
@@ -12,16 +13,19 @@ export enum LinearProtocolSupportedEvents {
 export interface LinearProtocolStakeDataParams {
     deposit: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface LinearProtocolUnstakeDataDetails {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface LinearProtocolWithdrawDataParams {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export declare type LinearProtocolStakeTxData = {
@@ -45,6 +49,7 @@ export declare type LinearProtocolTxDetails = LinearProtocolTxData & {
     appName: SupportedProtocolsTypes.LinearProtocol;
     userWalletAddress: string;
     txHash: string;
+    contractAddress: string;
 }
 
 /**
@@ -71,7 +76,9 @@ export const linearProtocolTxParser = async (_transaction: types.Transaction, re
                     data: {
                         deposit: `${formatTokenAmountByAddress(receiverId, args.deposit_token)} Near`,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
+                    contractAddress: receiverId,
                     eventName: LinearProtocolSupportedEvents.Stake,
                     userWalletAddress: signerId,
                     txHash,
@@ -87,7 +94,9 @@ export const linearProtocolTxParser = async (_transaction: types.Transaction, re
                     data: {
                         amount: methodName == 'unstake' ? `${formatTokenAmountByAddress(receiverId, args.args_json.amount)} Near` : "all staked Near",
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId,
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName == 'withdraw_all') {
@@ -99,7 +108,9 @@ export const linearProtocolTxParser = async (_transaction: types.Transaction, re
                     data: {
                         amount: `all unstaked Near`,
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId,
                 }
                 allTxDetails.push(txDetails);
             }

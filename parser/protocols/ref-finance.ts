@@ -1,5 +1,6 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { formatTokenAmountByAddress, formatTokenAmountBySymbol, getTokenSymbol } from "../../utils/getTokenMetaData";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
@@ -15,6 +16,7 @@ export interface RefSwapDataParams {
     amount_sold: string;
     amount_bought: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface RefAddLiquidityDataParams {
@@ -24,6 +26,7 @@ export interface RefAddLiquidityDataParams {
     amountB: string;
     poolId: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface RefRemoveLiquidityDataParams {
@@ -33,6 +36,7 @@ export interface RefRemoveLiquidityDataParams {
     amountB: string;
     poolId: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export declare type RefSwapTxData = {
@@ -56,7 +60,7 @@ export declare type RefTxDetails = RefTxData & {
     appName: SupportedProtocolsTypes.RefFinance;
     userWalletAddress: string;
     txHash: string;
-    apiKey: string;
+    contractAddress: string;
 }
 
 /**
@@ -94,8 +98,9 @@ export const refFinanceTxParser = async(_transaction: types.Transaction, receive
                         amount_sold: formatTokenAmountByAddress(token_in, args.amount),
                         amount_bought: formatTokenAmountByAddress(token_out, min_amount_out),
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
-                    apiKey: process.env.REF_API_KEY ?? "",
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName in ['add_stable_liquidity', 'add_liquidity']) {
@@ -115,8 +120,9 @@ export const refFinanceTxParser = async(_transaction: types.Transaction, receive
                         amountB: args.args_json.amount?.length > 2 ? formatTokenAmountBySymbol(token_symbols[1], args.args_json.amount[1]) : '',
                         poolId,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
-                    apiKey: process.env.REF_API_KEY ?? "",
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName in ['remove_liquidity_by_tokens', 'remove_liquidity']) {
@@ -136,8 +142,9 @@ export const refFinanceTxParser = async(_transaction: types.Transaction, receive
                         amountB: args.args_json.amounts?.length > 2 ? formatTokenAmountBySymbol(token_symbols[0], args.args_json.amounts[0]) : '',
                         poolId: args.args_json.pool_id,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
-                    apiKey: process.env.REF_API_KEY ?? "",
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             }

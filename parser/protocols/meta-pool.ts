@@ -1,5 +1,6 @@
 import assert from "assert";
 import { types } from "near-lake-framework";
+import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { formatTokenAmountByAddress } from "../../utils/getTokenMetaData";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
@@ -12,16 +13,19 @@ export enum MetaPoolSupportedEvents {
 export interface MetaPoolStakeDataParams {
     deposit: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface MetaPoolUnstakeDataDetails {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export interface MetaPoolWithdrawDataParams {
     amount: string;
     timestamp: string;
+    txUrl: string;
 }
 
 export declare type MetaPoolStakeTxData = {
@@ -45,6 +49,7 @@ export declare type MetaPoolTxDetails = MetaPoolTxData & {
     appName: SupportedProtocolsTypes.MetaPool;
     userWalletAddress: string;
     txHash: string;
+    contractAddress: string;
 }
 
 /**
@@ -71,10 +76,12 @@ export const metaPoolTxParser = async (_transaction: types.Transaction, receiver
                     data: {
                         deposit: `${formatTokenAmountByAddress(receiverId, args.deposit_token)} Near`,
                         timestamp: timestamp.toDateString(),
+                        txUrl: getExplorerUrl(txHash)
                     },
                     eventName: MetaPoolSupportedEvents.Stake,
                     userWalletAddress: signerId,
                     txHash,
+                    contractAddress: receiverId
                 }
 
                 allTxDetails.push(txDetails);
@@ -87,7 +94,9 @@ export const metaPoolTxParser = async (_transaction: types.Transaction, receiver
                     data: {
                         amount: methodName == 'unstake' ? `${formatTokenAmountByAddress(receiverId, args.args_json.amount)} Near` : "all staked Near",
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName == 'withdraw_all' || methodName == 'withdraw' || methodName == 'withdraw_unstaked') {
@@ -99,7 +108,9 @@ export const metaPoolTxParser = async (_transaction: types.Transaction, receiver
                     data: {
                         amount: `all unstaked Near`,
                         timestamp: timestamp.toDateString(),
-                    }
+                        txUrl: getExplorerUrl(txHash)
+                    },
+                    contractAddress: receiverId
                 }
                 allTxDetails.push(txDetails);
             }
