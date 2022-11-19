@@ -68,10 +68,10 @@ export declare type RefTxDetails = RefTxData & {
  * 
  * @returns array of tx details
  */
-export const refFinanceTxParser = async(receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+export const refFinanceTxParser = async(_transaction: types.Transaction, receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
+    console.log(actions)
     assert(receiverId == "v2.ref-finance.near")
-
     for(let i = 0; i < actions.length; i++) {
         const action = actions[i];
         const { args: _encodedArgs, methodName } = action.FunctionCall;

@@ -60,9 +60,10 @@ export declare type MintbaseTxDetails = MintbaseTxData & {
  * 
  * @returns array of tx details
  */
-export const mintbaseTxParser = async (receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+export const mintbaseTxParser = async (transaction: types.Transaction,  receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
     assert(receiverId == "mintbase.near");
+    const contractAddress = transaction.receiverId;
 
     for(let i = 0; i < actions.length; i++) {
         const action = actions[i];
@@ -75,7 +76,7 @@ export const mintbaseTxParser = async (receiverId: string, actions: types.Functi
                     data: {
                         tokenId: args.token_id,
                         receiver: args.receiver_id,
-                        nftContract: receiverId,
+                        nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
                     },
                     eventName: MintbaseSupportedEvents.Send,
@@ -88,7 +89,7 @@ export const mintbaseTxParser = async (receiverId: string, actions: types.Functi
                     data: {
                         tokenId: args.token_id,
                         sender: args.receiver_id,
-                        nftContract: receiverId,
+                        nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
                     },
                     eventName: MintbaseSupportedEvents.Receive,
@@ -105,7 +106,7 @@ export const mintbaseTxParser = async (receiverId: string, actions: types.Functi
                     eventName: MintbaseSupportedEvents.Mint,
                     data: {
                         num: args.num_to_mint,
-                        nftContract: receiverId,
+                        nftContract: contractAddress,
                         timestamp: timestamp.toDateString(),
                     }
                 }

@@ -1,6 +1,7 @@
 import { types } from "near-lake-framework";
 import { RabbitMqConnection } from "../rabbitMQ/setup";
 import { TxParser } from "./protocols";
+import { mintbaseTxParser } from "./protocols/mintbase";
 
 /**
  * 
@@ -26,13 +27,14 @@ export const transactionParser = async(tx: types.IndexerTransactionWithOutcome, 
     }
 
     if (relevantActions.length > 0) {
-        const parser = new TxParser(receiverId, relevantActions, signerId, transaction.hash, timestamp);
+        const parser = new TxParser(transaction, receiverId, relevantActions, signerId, transaction.hash, timestamp);
         const parsedTx = await parser.parse();
-        
+
         if (parsedTx) {
-            parsedTx.forEach((tx) => {
-                rabbitMqConnection.publishMessage(tx);
-            });
+            // parsedTx.forEach((tx) => {
+            //     rabbitMqConnection.publishMessage(tx);
+            // });
+            console.log(parsedTx);
         }
     }
 }

@@ -56,7 +56,7 @@ export declare type LinearProtocolTxDetails = LinearProtocolTxData & {
  * 
  * @returns array of tx details
  */
-export const linearProtocolTxParser = async (receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+export const linearProtocolTxParser = async (_transaction: types.Transaction, receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
     assert(receiverId == "linear-protocol.near");
 

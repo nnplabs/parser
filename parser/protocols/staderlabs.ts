@@ -56,7 +56,7 @@ export declare type StaderLabsTxDetails = StaderLabsTxData & {
  * 
  * @returns array of tx details
  */
-export const staderlabsTxParser = async (receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+export const staderlabsTxParser = async (_transaction: types.Transaction, receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
     assert(receiverId == "v2-nearx.stader-labs.near");
 

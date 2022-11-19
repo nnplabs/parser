@@ -1,5 +1,5 @@
 import amqplib from 'amqplib';
-import { TxDetails } from '../types/tx-details';
+import { TxDetails } from '../parser/protocols/protocol-types';
 
 export class RabbitMqConnection {
     private connection: amqplib.Connection | undefined;

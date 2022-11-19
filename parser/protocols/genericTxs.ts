@@ -29,7 +29,7 @@ export declare type GenericTxDetails = {
  * 
  * @returns array of tx details
  */
-export const genericTxParser = async (receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
+export const genericTxParser = async (_transaction: types.Transaction, receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
 
     for(let i = 0; i < actions.length; i++) {
