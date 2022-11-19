@@ -6,7 +6,7 @@ import { RabbitMqConnection } from './rabbitMQ/setup';
 const lakeConfig: types.LakeConfig = {
   s3BucketName: "near-lake-data-mainnet",
   s3RegionName: "eu-central-1",
-  startBlockHeight: 78368075,
+  startBlockHeight: 78792916,
 };
 
 class NotificationService  {
