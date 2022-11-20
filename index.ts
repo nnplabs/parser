@@ -53,16 +53,17 @@ class NotificationService  {
 
 
 (async () => {
-    // const rabbitMqConnection = new RabbitMqConnection();
-    // await rabbitMqConnection.setUp()
-    await setupAWS();
+    const rabbitMqConnection = new RabbitMqConnection();
+    await rabbitMqConnection.setUp()
 
-    // const prisma = new PrismaClient();
-    // const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
-    // const notificationService = new NotificationService(rabbitMqConnection);
+    const prisma = new PrismaClient();
+    const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
+    const notificationService = new NotificationService(rabbitMqConnection);
 
-    // if (lastProcessedBlock) {
-    //   lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
-    // }
-    // await startStream(lakeConfig, notificationService.handleStreamerMessage);
+    if (lastProcessedBlock) {
+      lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
+    }
+    setupAWS().then(async() => {
+      await startStream(lakeConfig, notificationService.handleStreamerMessage);
+    })
 })();
