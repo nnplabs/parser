@@ -46,6 +46,7 @@ class NotificationService  {
               network: "MAINNET"
             }
           })
+          console.log(`Processed block ${blockHeight}`);
         }
 }
 
