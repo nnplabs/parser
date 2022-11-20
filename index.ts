@@ -63,7 +63,5 @@ class NotificationService  {
     if (lastProcessedBlock) {
       lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
     }
-    setupAWS().then(async() => {
-      await startStream(lakeConfig, notificationService.handleStreamerMessage);
-    })
+    await startStream(lakeConfig, notificationService.handleStreamerMessage);
 })();
