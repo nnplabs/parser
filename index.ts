@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { startStream, types } from 'near-lake-framework';
 import { transactionParser } from './parser/parser';
 import { RabbitMqConnection } from './rabbitMQ/setup';
+import { setupAWS } from './utils/setupAWS';
 
 const lakeConfig: types.LakeConfig = {
   s3BucketName: "near-lake-data-mainnet",
@@ -54,6 +55,7 @@ class NotificationService  {
 (async () => {
     const rabbitMqConnection = new RabbitMqConnection();
     await rabbitMqConnection.setUp()
+    await setupAWS();
 
     const prisma = new PrismaClient();
     const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
