@@ -2,6 +2,7 @@ import assert from "assert";
 import { types } from "near-lake-framework";
 import { getExplorerUrl } from "../../utils/getExplorerUrl";
 import { formatTokenAmountByAddress, formatTokenAmountBySymbol, getTokenSymbol } from "../../utils/getTokenMetaData";
+import { genericTxParser } from "./genericTxs";
 import { SupportedProtocolsTypes, TxDetails } from "./protocol-types";
 
 export enum RefSupportedEvents {
@@ -75,14 +76,13 @@ export declare type RefTxDetails = RefTxData & {
 export const refFinanceTxParser = async(_transaction: types.Transaction, receiverId: string, actions: types.FunctionCallAction[], signerId: string, txHash: string, timestamp: Date): Promise<TxDetails[]> => {
     const allTxDetails: TxDetails[] = [];
 
-    assert(receiverId == "v2.ref-finance.near")
+    // assert(receiverId == "v2.ref-finance.near")
     for(let i = 0; i < actions.length; i++) {
         const action = actions[i];
         const { args: _encodedArgs, methodName } = action.FunctionCall;
         try {
             const args = JSON.parse(Buffer.from(_encodedArgs, 'base64').toString('utf8'))
-            
-            if (methodName == 'ft_transfer_call' && args.msg) {
+            if (methodName == 'ft_transfer_call' && args.msg && args?.receiver_id=="v2.ref-finance.near") {
                 const parsedMsg = JSON.parse(args.msg);
                 const {token_in} = parsedMsg.actions[0];
                 const {token_out, min_amount_out} = parsedMsg.actions.at(-1);
@@ -100,7 +100,7 @@ export const refFinanceTxParser = async(_transaction: types.Transaction, receive
                         timestamp: timestamp.toDateString(),
                         txUrl: getExplorerUrl(txHash)
                     },
-                    contractAddress: receiverId
+                    contractAddress: args.receiver_id
                 }
                 allTxDetails.push(txDetails);
             } else if (methodName in ['add_stable_liquidity', 'add_liquidity']) {
@@ -149,7 +149,9 @@ export const refFinanceTxParser = async(_transaction: types.Transaction, receive
                 allTxDetails.push(txDetails);
             }
         } catch (e) {
-            console.log(e);
+            const txs = await genericTxParser(_transaction, receiverId, actions, signerId, txHash, timestamp);
+            allTxDetails.concat(txs);
+            // console.log(e);
         }
     }
 

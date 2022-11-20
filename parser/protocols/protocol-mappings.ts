@@ -12,4 +12,5 @@ export const SupportedProtocolsMapping: Record<string,  (_transaction: types.Tra
     "v2-nearx.stader-labs.near": staderlabsTxParser,
     "meta-pool.near": metaPoolTxParser,
     "linear-protocol.near": linearProtocolTxParser,
+    "wrap.near": refFinanceTxParser
 };

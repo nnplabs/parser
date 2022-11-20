@@ -55,7 +55,7 @@ export const genericTxParser = async (_transaction: types.Transaction, receiverI
 
                 allTxDetails.push(txDetails);
         } catch (error) {
-            // console.log(error);
+            console.log(error);
         }
     }
 

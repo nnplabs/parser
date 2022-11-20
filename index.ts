@@ -6,7 +6,7 @@ import { RabbitMqConnection } from './rabbitMQ/setup';
 const lakeConfig: types.LakeConfig = {
   s3BucketName: "near-lake-data-mainnet",
   s3RegionName: "eu-central-1",
-  startBlockHeight: 78800604  ,
+  startBlockHeight: 78868475,
 };
 
 class NotificationService  {
@@ -32,34 +32,34 @@ class NotificationService  {
               transactions.forEach(async (tx) => {
                 await transactionParser(tx, timestamp, this.rabbitMqConnection)
               });
-              
           }
-
-          // this.prisma.blockHeight.upsert({
-          //   where: {
-          //       network: "MAINNET"
-          //   },
-          //   update: {
-          //     lastProcessedBlock: blockHeight,
-          //   },
-          //   create: {
-          //     lastProcessedBlock: blockHeight,
-          //     network: "MAINNET"
-          //   }
-          // })
-      }
+          
+          await this.prisma.blockHeight.upsert({
+            where: {
+                network: "MAINNET"
+            },
+            update: {
+              lastProcessedBlock: blockHeight,
+            },
+            create: {
+              lastProcessedBlock: blockHeight,
+              network: "MAINNET"
+            }
+          })
+        }
 }
 
 
 (async () => {
     const rabbitMqConnection = new RabbitMqConnection();
     await rabbitMqConnection.setUp()
-    // await rabbitMqConnection.channel.consume("nnp-msg-queue", (msg) => console.log("listening", msg?.content.toString()));
 
-    // const prisma = new PrismaClient();
-    // const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
+    const prisma = new PrismaClient();
+    const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
     const notificationService = new NotificationService(rabbitMqConnection);
 
-    // lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock || 77072188;
+    if (lastProcessedBlock) {
+      lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
+    }
     await startStream(lakeConfig, notificationService.handleStreamerMessage);
 })();
