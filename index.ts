@@ -35,18 +35,18 @@ class NotificationService  {
               });
           }
           
-          await this.prisma.blockHeight.upsert({
-            where: {
-                network: "MAINNET"
-            },
-            update: {
-              lastProcessedBlock: blockHeight,
-            },
-            create: {
-              lastProcessedBlock: blockHeight,
-              network: "MAINNET"
-            }
-          })
+          // await this.prisma.blockHeight.upsert({
+          //   where: {
+          //       network: "MAINNET"
+          //   },
+          //   update: {
+          //     lastProcessedBlock: blockHeight,
+          //   },
+          //   create: {
+          //     lastProcessedBlock: blockHeight,
+          //     network: "MAINNET"
+          //   }
+          // })
           console.log(`Processed block ${blockHeight}`);
         }
 }
@@ -60,11 +60,11 @@ class NotificationService  {
     const lastProcessedBlock = await prisma.blockHeight.findFirst({ where: { network: "MAINNET" } });
     const notificationService = new NotificationService(rabbitMqConnection);
 
-    if (lastProcessedBlock) {
-      lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
-    }
-    
-    setupAWS().then(async() => {
+    // if (lastProcessedBlock) {
+    //   lakeConfig.startBlockHeight = lastProcessedBlock?.lastProcessedBlock;
+    // }
+
+    // setupAWS().then(async() => {
       await startStream(lakeConfig, notificationService.handleStreamerMessage);
-    })
+    // })
 })();

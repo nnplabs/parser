@@ -7,7 +7,7 @@
     "license": "MIT",
     "private": false,
     "scripts": {
-        "start": "npx tsc &&  node dist/index.js",
+        "start": "tsc && node --max_old_space_size=4096 dist/index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "devDependencies": {
